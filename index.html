@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<title>승강기 기능사 스터디 노트</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16223b; --fg:#e5e7eb; --mut:#9ca3af;
+    --bd:#1f2a44; --pri:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --hl:#fbbf24;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  header{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0;font-weight:700}
+  header .role{font-size:11px;padding:3px 8px;border:1px solid var(--bd);border-radius:6px;color:var(--mut)}
+  header .role.teacher{color:#fbbf24;border-color:#7a5a0c}
+  header .sync{margin-left:auto;font-size:11px;color:var(--mut)}
+  .tabs{display:flex;gap:2px;padding:8px 8px 0;overflow-x:auto;border-bottom:1px solid var(--bd);background:var(--panel)}
+  .tabs button{flex:0 0 auto;background:transparent;color:var(--mut);border:0;padding:10px 12px;font-size:13px;
+    border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap}
+  .tabs button.on{background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-bottom-color:var(--bg)}
+  main{padding:14px 16px 80px;max-width:780px;margin:0 auto}
+  h2{font-size:15px;margin:14px 0 8px;color:#cbd5e1}
+  h3{font-size:14px;margin:10px 0 6px}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;margin:8px 0}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .kpi{padding:10px;background:var(--panel2);border:1px solid var(--bd);border-radius:var(--radius)}
+  .kpi .lab{font-size:11px;color:var(--mut)}
+  .kpi .val{font-size:22px;font-weight:700;margin-top:2px}
+  select,input,textarea,button{font:inherit;color:var(--fg);background:var(--panel2);
+    border:1px solid var(--bd);border-radius:6px;padding:8px 10px;outline:none}
+  textarea{width:100%;min-height:90px;resize:vertical}
+  input[type=text],input[type=date],input[type=number]{width:100%}
+  button{cursor:pointer}
+  button.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+  button.ghost{background:transparent}
+  button.danger{background:transparent;border-color:#7a1d1d;color:#fca5a5}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid var(--bd);border-radius:10px;color:var(--mut)}
+  ul.bul{margin:6px 0 0;padding-left:18px}
+  ul.bul li{margin:4px 0;line-height:1.55}
+  .hl{background:#3b2f0a;color:#fde68a;padding:1px 5px;border-radius:4px;font-weight:600}
+  .qbox{background:var(--panel2);border:1px solid var(--bd);border-radius:var(--radius);padding:12px;margin:8px 0}
+  .qbox .qt{font-weight:600;margin-bottom:8px;line-height:1.5}
+  .choices{display:flex;flex-direction:column;gap:6px}
+  .choices button{text-align:left;background:var(--panel);padding:10px 12px;line-height:1.45}
+  .choices button.ok{background:#0f3a1d;border-color:#1f7a3a;color:#bbf7d0}
+  .choices button.no{background:#3a0f15;border-color:#7a1f2c;color:#fecaca}
+  .choices button.dim{opacity:.55}
+  .expl{margin-top:8px;font-size:13px;color:#cbd5e1;background:var(--panel);padding:8px 10px;border-radius:6px;border:1px dashed var(--bd)}
+  .bar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
+  .bar > i{display:block;height:100%;background:var(--pri)}
+  .bar > i.warn{background:var(--warn)} .bar > i.bad{background:var(--bad)} .bar > i.ok{background:var(--ok)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .mut{color:var(--mut);font-size:12px}
+  .qedit{border:1px dashed var(--bd);border-radius:6px;padding:10px;margin:8px 0;background:var(--panel2)}
+  .qedit .opt{display:flex;align-items:center;gap:6px;margin:4px 0}
+  .qedit .opt input[type=text]{flex:1}
+  .hide{display:none}
+  .teacher-only{display:none}
+  body.teacher .teacher-only{display:block}
+  body.teacher .teacher-tab{display:inline-block}
+  .teacher-tab{display:none}
+  .score{font-size:13px;color:var(--mut)}
+  .score b{color:var(--fg)}
+  details summary{cursor:pointer;color:var(--mut);font-size:12px;padding:4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>승강기 기능사 스터디 노트</h1>
+  <span class="role" id="roleBadge">학생</span>
+  <span class="sync" id="syncMsg">로딩 중…</span>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="today" class="on">오늘 학습</button>
+  <button data-tab="mock">동형문제</button>
+  <button data-tab="stats">학습 기록</button>
+  <button data-tab="wrong">오답노트</button>
+  <button data-tab="edit" class="teacher-tab">세션 편집</button>
+  <button data-tab="data" class="teacher-tab">데이터</button>
+</nav>
+
+<main>
+<!-- ========= 오늘 학습 ========= -->
+<section id="tab-today">
+  <div class="row" style="margin-top:8px">
+    <div class="kpi" style="flex:1"><div class="lab">등록된 세션</div><div class="val" id="kSes">0</div></div>
+    <div class="kpi" style="flex:1"><div class="lab">총 문항</div><div class="val" id="kQ">0</div></div>
+    <div class="kpi" style="flex:1"><div class="lab">시험 D-day</div><div class="val" id="kD">-</div></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label class="mut">세션 선택</label>
+      <select id="todaySel" style="flex:1"></select>
+    </div>
+    <div id="todayBody"></div>
+  </div>
+
+  <div class="card">
+    <h3>그날의 문제풀이</h3>
+    <div class="score">정답 <b id="tScore">0</b> / <b id="tTotal">0</b></div>
+    <div id="todayQs"></div>
+  </div>
+</section>
+
+<!-- ========= 동형문제 ========= -->
+<section id="tab-mock" class="hide">
+  <div class="card">
+    <h3>동형문제 출제</h3>
+    <div class="row">
+      <label class="mut">범위</label>
+      <select id="mScope" style="flex:1"><option value="all">전체 세션</option></select>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="mut">문항 수</label>
+      <select id="mCount">
+        <option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option>
+      </select>
+      <label class="row" style="gap:4px"><input type="checkbox" id="mShuffleQ" checked> 문항 순서 섞기</label>
+      <label class="row" style="gap:4px"><input type="checkbox" id="mShuffleC" checked> 보기 순서 섞기</label>
+      <label class="row" style="gap:4px"><input type="checkbox" id="mWrong"> 오답만</label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="pri" id="mGen">새로 출제</button>
+      <span class="score">정답 <b id="mScore">0</b> / <b id="mTotal">0</b></span>
+    </div>
+  </div>
+  <div id="mockQs"></div>
+</section>
+
+<!-- ========= 학습 기록 ========= -->
+<section id="tab-stats" class="hide">
+  <div class="card">
+    <h3>일자별 정답률</h3>
+    <table><thead><tr><th>날짜</th><th>주제</th><th class="num">풀이</th><th class="num">정답률</th><th>분포</th></tr></thead>
+    <tbody id="statBody"></tbody></table>
+  </div>
+</section>
+
+<!-- ========= 오답노트 ========= -->
+<section id="tab-wrong" class="hide">
+  <div class="card">
+    <h3>최근 풀이가 오답인 문제</h3>
+    <div id="wrongBody" class="mut">아직 풀이 기록이 없습니다.</div>
+  </div>
+</section>
+
+<!-- ========= 세션 편집 (선생님) ========= -->
+<section id="tab-edit" class="hide teacher-only">
+  <div class="card">
+    <div class="row">
+      <label class="mut">세션</label>
+      <select id="eSel" style="flex:1"><option value="__new__">+ 새 세션 추가</option></select>
+      <button class="danger" id="eDel">삭제</button>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div><label class="mut">날짜</label><input type="date" id="eDate"></div>
+      <div><label class="mut">주제</label><input type="text" id="eTopic" placeholder="예: 안전장치"></div>
+    </div>
+    <div style="margin-top:8px">
+      <label class="mut">핵심 요약 (한 줄에 한 항목, =키워드= 로 강조)</label>
+      <textarea id="eSummary" placeholder="예) =조속기=는 정격속도의 1.3배에서 1차 작동"></textarea>
+    </div>
+    <h3>문제 목록</h3>
+    <div id="eQList"></div>
+    <div class="row" style="margin-top:8px">
+      <button id="eAddQ">+ 문제 추가</button>
+      <button class="pri" id="eSave" style="margin-left:auto">저장</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========= 데이터 (선생님) ========= -->
+<section id="tab-data" class="hide teacher-only">
+  <div class="card">
+    <h3>data.json 내보내기</h3>
+    <p class="mut">아래 텍스트를 복사해서 GitHub의 <code>data.json</code> 파일에 붙여넣고 commit하면 학생들의 앱에 자동 반영됩니다.</p>
+    <textarea id="dExport" style="min-height:200px;font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button id="dCopy">복사</button>
+      <button id="dDownload">파일로 저장</button>
+      <button id="dReload" class="ghost">서버 data.json 다시 불러오기</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>JSON 가져오기 (붙여넣기)</h3>
+    <textarea id="dImport" placeholder="외부에서 받은 JSON 붙여넣기"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="pri" id="dApply">적용</button>
+      <button class="danger" id="dClear" style="margin-left:auto">로컬 편집 내용 초기화</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ===== 모드 결정 ===== */
+const IS_TEACHER = new URLSearchParams(location.search).get('role') === 'teacher';
+document.body.classList.toggle('teacher', IS_TEACHER);
+const rb = document.getElementById('roleBadge');
+rb.textContent = IS_TEACHER ? '선생님' : '학생';
+if (IS_TEACHER) rb.classList.add('teacher');
+
+/* ===== 상태 ===== */
+const LS_DATA  = 'elev_data_v1';     // 선생님이 로컬에서 편집한 콘텐츠
+const LS_HIST  = 'elev_hist_v1';     // 모두에게 공통: 풀이 이력
+let DATA = { meta:{title:'',examDate:'',updatedAt:''}, sessions:[] };
+let HIST = {};                        // { qid: {ok:bool, ts:int} }
+let MOCK = [];                        // 현재 동형문제 세트
+
+/* ===== 유틸 ===== */
+const $ = (s,el=document) => el.querySelector(s);
+const $$ = (s,el=document) => [...el.querySelectorAll(s)];
+const esc = s => (s||'').replace(/[&<>]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const hl  = s => esc(s).replace(/=([^=]+)=/g, '<span class="hl">$1</span>');
+const qid = (sid, qi) => sid+'#'+qi;
+const shuffle = (arr) => {
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+};
+const daysUntil = (iso) => {
+  if (!iso) return '-';
+  const d = Math.ceil((new Date(iso) - new Date())/86400000);
+  return d>=0 ? 'D-'+d : 'D+'+(-d);
+};
+const saveHist = () => localStorage.setItem(LS_HIST, JSON.stringify(HIST));
+const saveData = () => localStorage.setItem(LS_DATA, JSON.stringify(DATA));
+
+/* ===== 데이터 로딩 ===== */
+async function loadData(){
+  const sync = $('#syncMsg');
+  // 선생님은 로컬 편집본 우선. 학생은 항상 서버 data.json 우선.
+  if (IS_TEACHER) {
+    const local = localStorage.getItem(LS_DATA);
+    if (local) {
+      try { DATA = JSON.parse(local); sync.textContent = '로컬 편집본 로드'; return; } catch(e){}
+    }
+  }
+  try {
+    const res = await fetch('./data.json?ts='+Date.now(), {cache:'no-cache'});
+    if (!res.ok) throw new Error('fetch fail');
+    DATA = await res.json();
+    sync.textContent = '서버 data.json 로드 · ' + (DATA.meta?.updatedAt || '');
+    if (IS_TEACHER) saveData();
+  } catch(e) {
+    const local = localStorage.getItem(LS_DATA);
+    if (local) { try { DATA = JSON.parse(local); sync.textContent='오프라인 — 로컬 데이터 사용'; return; } catch(_){} }
+    sync.textContent = 'data.json을 불러올 수 없습니다';
+  }
+}
+
+/* ===== 렌더링 ===== */
+function renderAll(){
+  renderKPI();
+  renderTodaySelect();
+  renderToday();
+  renderMockScope();
+  renderStats();
+  renderWrong();
+  if (IS_TEACHER){ renderEditSelect(); renderExport(); }
+}
+
+function renderKPI(){
+  $('#kSes').textContent = DATA.sessions.length;
+  $('#kQ').textContent = DATA.sessions.reduce((s,x)=>s+(x.questions?.length||0),0);
+  $('#kD').textContent = daysUntil(DATA.meta?.examDate);
+}
+
+function renderTodaySelect(){
+  const sel = $('#todaySel');
+  sel.innerHTML='';
+  const arr = [...DATA.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  for (const s of arr){
+    const o = document.createElement('option');
+    o.value = s.id; o.textContent = `${s.date} · ${s.topic}`;
+    sel.appendChild(o);
+  }
+  sel.onchange = renderToday;
+}
+
+function findSession(id){ return DATA.sessions.find(x=>x.id===id); }
+
+function renderToday(){
+  const sid = $('#todaySel').value;
+  const s = findSession(sid);
+  const body = $('#todayBody'); const qs = $('#todayQs');
+  if (!s){ body.innerHTML='<p class="mut">등록된 세션이 없습니다.</p>'; qs.innerHTML=''; $('#tScore').textContent=0; $('#tTotal').textContent=0; return; }
+  body.innerHTML = `<h3>${esc(s.topic)} <span class="pill">${esc(s.date)}</span></h3>
+    <ul class="bul">${(s.summary||[]).map(li=>`<li>${hl(li)}</li>`).join('')}</ul>`;
+  // 문제 (원본 순서)
+  qs.innerHTML = '';
+  $('#tTotal').textContent = (s.questions||[]).length;
+  let okCnt = 0;
+  (s.questions||[]).forEach((q,i)=>{
+    qs.appendChild(makeQBox(qid(s.id,i), q, q.choices.map((_,k)=>k), ()=>{ okCnt++; $('#tScore').textContent=okCnt; }));
+  });
+}
+
+/* 문제 박스: choiceOrder는 원본 인덱스의 순열 */
+function makeQBox(id, q, choiceOrder, onCorrect){
+  const box = document.createElement('div');
+  box.className = 'qbox';
+  const head = document.createElement('div');
+  head.className = 'qt';
+  head.innerHTML = esc(q.q);
+  box.appendChild(head);
+  const cs = document.createElement('div'); cs.className='choices';
+  const btns = [];
+  choiceOrder.forEach((origIdx, displayIdx)=>{
+    const b = document.createElement('button');
+    b.innerHTML = `<b>${'①②③④⑤'[displayIdx]||(displayIdx+1)}</b>&nbsp; ${esc(q.choices[origIdx])}`;
+    b.onclick = ()=>{
+      if (box.dataset.done) return;
+      box.dataset.done = '1';
+      const correct = (origIdx === q.answer);
+      btns.forEach((bb,k)=>{
+        const oi = choiceOrder[k];
+        if (oi === q.answer) bb.classList.add('ok');
+        else if (k===displayIdx) bb.classList.add('no');
+        else bb.classList.add('dim');
+      });
+      // 해설
+      if (q.explain){
+        const e = document.createElement('div'); e.className='expl';
+        e.textContent = (correct?'정답. ':'오답. ') + q.explain;
+        box.appendChild(e);
+      }
+      HIST[id] = {ok:correct, ts:Date.now()};
+      saveHist();
+      if (correct && onCorrect) onCorrect();
+      renderStats(); renderWrong();
+    };
+    btns.push(b); cs.appendChild(b);
+  });
+  box.appendChild(cs);
+  return box;
+}
+
+/* ===== 동형문제 ===== */
+function renderMockScope(){
+  const sel = $('#mScope');
+  sel.innerHTML = '<option value="all">전체 세션</option>';
+  for (const s of DATA.sessions){
+    const o = document.createElement('option');
+    o.value = s.id; o.textContent = `${s.date} · ${s.topic}`;
+    sel.appendChild(o);
+  }
+}
+function buildPool(){
+  const scope = $('#mScope').value;
+  const list = [];
+  for (const s of DATA.sessions){
+    if (scope!=='all' && s.id!==scope) continue;
+    (s.questions||[]).forEach((q,i)=>list.push({sid:s.id, qi:i, q}));
+  }
+  return list;
+}
+$('#mGen').onclick = ()=>{
+  let pool = buildPool();
+  if ($('#mWrong').checked){
+    pool = pool.filter(x => HIST[qid(x.sid,x.qi)]?.ok === false);
+    if (!pool.length){ alert('오답 기록이 없습니다.'); return; }
+  }
+  if ($('#mShuffleQ').checked) pool = shuffle(pool);
+  const n = Math.min(parseInt($('#mCount').value,10), pool.length);
+  MOCK = pool.slice(0,n).map(item=>{
+    const order = $('#mShuffleC').checked
+      ? shuffle(item.q.choices.map((_,k)=>k))
+      : item.q.choices.map((_,k)=>k);
+    return {...item, order};
+  });
+  $('#mTotal').textContent = MOCK.length;
+  $('#mScore').textContent = 0;
+  const wrap = $('#mockQs'); wrap.innerHTML='';
+  let ok=0;
+  MOCK.forEach((item,idx)=>{
+    const id = qid(item.sid,item.qi);
+    const box = makeQBox(id, item.q, item.order, ()=>{ ok++; $('#mScore').textContent=ok; });
+    const head = document.createElement('div');
+    head.className='mut'; head.style.marginTop='10px';
+    head.textContent = `문항 ${idx+1} / ${MOCK.length}`;
+    wrap.appendChild(head); wrap.appendChild(box);
+  });
+};
+
+/* ===== 학습 기록 ===== */
+function renderStats(){
+  const tbody = $('#statBody'); tbody.innerHTML='';
+  const sorted = [...DATA.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  for (const s of sorted){
+    let total=0, ok=0;
+    (s.questions||[]).forEach((q,i)=>{
+      const h = HIST[qid(s.id,i)];
+      if (h){ total++; if (h.ok) ok++; }
+    });
+    const rate = total? Math.round(ok/total*100):0;
+    const cls = total===0? '' : rate>=80?'ok':rate>=60?'warn':'bad';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${esc(s.date)}</td><td>${esc(s.topic)}</td>
+      <td class="num">${total}/${s.questions.length}</td>
+      <td class="num">${total?rate+'%':'-'}</td>
+      <td style="width:30%"><div class="bar"><i class="${cls}" style="width:${rate}%"></i></div></td>`;
+    tbody.appendChild(tr);
+  }
+  if (!sorted.length) tbody.innerHTML = '<tr><td colspan="5" class="mut">데이터가 없습니다.</td></tr>';
+}
+
+/* ===== 오답노트 ===== */
+function renderWrong(){
+  const wrap = $('#wrongBody');
+  const items = [];
+  for (const s of DATA.sessions){
+    (s.questions||[]).forEach((q,i)=>{
+      const h = HIST[qid(s.id,i)];
+      if (h && !h.ok) items.push({s,q,i,ts:h.ts});
+    });
+  }
+  if (!items.length){ wrap.innerHTML='<span class="mut">오답이 없습니다.</span>'; return; }
+  items.sort((a,b)=>b.ts-a.ts);
+  wrap.innerHTML='';
+  items.forEach(it=>{
+    const div = document.createElement('div'); div.className='qbox';
+    div.innerHTML = `<div class="mut" style="font-size:11px">${esc(it.s.date)} · ${esc(it.s.topic)}</div>
+      <div class="qt">${esc(it.q.q)}</div>
+      <div class="expl"><b>정답:</b> ${'①②③④'[it.q.answer]} ${esc(it.q.choices[it.q.answer])}<br>
+      ${esc(it.q.explain||'')}</div>`;
+    wrap.appendChild(div);
+  });
+}
+
+/* ===== 세션 편집 (선생님) ===== */
+function renderEditSelect(){
+  const sel = $('#eSel');
+  sel.innerHTML = '<option value="__new__">+ 새 세션 추가</option>';
+  for (const s of DATA.sessions){
+    const o=document.createElement('option'); o.value=s.id; o.textContent=`${s.date} · ${s.topic}`;
+    sel.appendChild(o);
+  }
+  sel.onchange = loadEdit;
+  loadEdit();
+}
+function loadEdit(){
+  const v = $('#eSel').value;
+  if (v==='__new__'){
+    $('#eDate').value = new Date().toISOString().slice(0,10);
+    $('#eTopic').value = ''; $('#eSummary').value=''; renderQEdit([]);
+  } else {
+    const s = findSession(v);
+    $('#eDate').value = s.date; $('#eTopic').value = s.topic;
+    $('#eSummary').value = (s.summary||[]).join('\n');
+    renderQEdit(s.questions||[]);
+  }
+}
+function renderQEdit(qs){
+  const wrap = $('#eQList'); wrap.innerHTML='';
+  qs.forEach((q,idx)=>wrap.appendChild(makeQEdit(q,idx)));
+}
+function makeQEdit(q, idx){
+  const div = document.createElement('div'); div.className='qedit';
+  div.innerHTML = `
+    <div class="row"><b>문제 ${idx+1}</b><button class="danger" style="margin-left:auto" data-act="del">삭제</button></div>
+    <input type="text" class="qt" placeholder="문제 본문" value="${esc(q.q||'')}" style="margin-top:6px">
+    ${[0,1,2,3].map(k=>`
+      <div class="opt">
+        <input type="radio" name="ans-${idx}" ${q.answer===k?'checked':''} data-k="${k}">
+        <input type="text" placeholder="보기 ${k+1}" value="${esc(q.choices?.[k]||'')}" data-c="${k}">
+      </div>`).join('')}
+    <input type="text" class="ex" placeholder="해설(선택)" value="${esc(q.explain||'')}" style="margin-top:6px">
+  `;
+  div.querySelector('[data-act=del]').onclick = ()=>div.remove();
+  return div;
+}
+$('#eAddQ').onclick = ()=>$('#eQList').appendChild(makeQEdit({q:'',choices:['','','',''],answer:0,explain:''},$('#eQList').children.length));
+$('#eDel').onclick = ()=>{
+  const v=$('#eSel').value; if (v==='__new__') return;
+  if (!confirm('이 세션을 삭제할까요?')) return;
+  DATA.sessions = DATA.sessions.filter(s=>s.id!==v);
+  saveData(); renderAll();
+};
+$('#eSave').onclick = ()=>{
+  const v=$('#eSel').value;
+  const date=$('#eDate').value, topic=$('#eTopic').value.trim();
+  if (!date||!topic){ alert('날짜와 주제를 입력하세요'); return; }
+  const summary = $('#eSummary').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  const questions = [];
+  [...$('#eQList').children].forEach(div=>{
+    const qt = div.querySelector('.qt').value.trim();
+    const choices = [...div.querySelectorAll('[data-c]')].map(i=>i.value.trim());
+    const ans = div.querySelector('input[type=radio]:checked');
+    const answer = ans ? parseInt(ans.dataset.k,10) : 0;
+    const ex = div.querySelector('.ex').value.trim();
+    if (qt && choices.every(c=>c)) questions.push({q:qt,choices,answer,explain:ex});
+  });
+  const sess = {id:date, date, topic, summary, questions};
+  if (v==='__new__'){
+    if (DATA.sessions.some(s=>s.id===date)){ alert('해당 날짜 세션이 이미 있습니다'); return; }
+    DATA.sessions.push(sess);
+  } else {
+    const i = DATA.sessions.findIndex(s=>s.id===v);
+    DATA.sessions[i] = sess;
+  }
+  DATA.meta = DATA.meta||{}; DATA.meta.updatedAt = new Date().toISOString().slice(0,10);
+  saveData(); renderAll();
+  $('#eSel').value = sess.id; loadEdit();
+  alert('저장되었습니다. (배포하려면 데이터 탭에서 JSON을 내보내 GitHub에 올리세요)');
+};
+
+/* ===== 데이터 탭 ===== */
+function renderExport(){
+  $('#dExport').value = JSON.stringify(DATA, null, 2);
+}
+$('#dCopy')?.addEventListener('click', async ()=>{
+  await navigator.clipboard.writeText($('#dExport').value);
+  alert('복사되었습니다. GitHub의 data.json에 붙여넣고 commit하세요.');
+});
+$('#dDownload')?.addEventListener('click', ()=>{
+  const blob = new Blob([$('#dExport').value], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'data.json'; a.click();
+});
+$('#dReload')?.addEventListener('click', async ()=>{
+  localStorage.removeItem(LS_DATA);
+  await loadData(); renderAll();
+});
+$('#dApply')?.addEventListener('click', ()=>{
+  try{
+    const obj = JSON.parse($('#dImport').value);
+    if (!obj.sessions) throw new Error('형식 오류');
+    DATA = obj; saveData(); renderAll(); alert('가져오기 완료');
+  }catch(e){ alert('JSON 형식 오류: '+e.message); }
+});
+$('#dClear')?.addEventListener('click', ()=>{
+  if (!confirm('로컬 편집본을 모두 지우고 서버 data.json으로 되돌릴까요?')) return;
+  localStorage.removeItem(LS_DATA); location.reload();
+});
+
+/* ===== 탭 전환 ===== */
+$$('#tabs button').forEach(b=>b.onclick=()=>{
+  $$('#tabs button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  ['today','mock','stats','wrong','edit','data'].forEach(t=>{
+    $('#tab-'+t).classList.toggle('hide', t!==b.dataset.tab);
+  });
+});
+
+/* ===== 초기화 ===== */
+(async function init(){
+  try { HIST = JSON.parse(localStorage.getItem(LS_HIST)||'{}'); } catch(e){ HIST={}; }
+  await loadData();
+  renderAll();
+})();
+
+/* ===== PWA 등록 ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

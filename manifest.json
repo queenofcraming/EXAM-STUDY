@@ -1,0 +1,26 @@
+{
+  "name": "승강기 기능사 스터디 노트",
+  "short_name": "승강기스터디",
+  "description": "승강기 기능사 필기 시험대비 스터디 — 일일 핵심정리 + 동형문제",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "orientation": "portrait",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
